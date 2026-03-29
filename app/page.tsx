@@ -1,65 +1,89 @@
-import Image from "next/image";
+import dayjs from "dayjs";
+import Link from "next/link";
+import { getHomeData, getUserTrainData } from "@/app/_lib/api/fetch-generated";
+import { requireAuth, requireOnboarding } from "@/app/_lib/guards";
+import { ConsistencyTracker } from "@/app/_components/consistency-tracker";
+import { WorkoutDayCard } from "@/app/_components/workout-day-card";
+import { BottomNav } from "@/app/_components/bottom-nav";
 
-export default function Home() {
+export default async function HomePage() {
+  const sessionData = await requireAuth();
+
+  const today = dayjs();
+  const [homeData, trainData] = await Promise.all([
+    getHomeData(today.format("YYYY-MM-DD")),
+    getUserTrainData(),
+  ]);
+
+  requireOnboarding(homeData, trainData);
+
+  if (homeData.status !== 200) throw new Error("Failed to fetch home data");
+
+  const { todayWorkoutDay, workoutStreak, consistencyByDay } = homeData.data;
+  const firstName = sessionData.user.name?.split(" ")[0];
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="flex min-h-svh flex-col bg-background pb-24">
+      <div className="flex h-14 items-center px-5">
+        <p
+          className="text-[22px] uppercase leading-[1.15] text-foreground"
+          style={{ fontFamily: "var(--font-anton)" }}
+        >
+          Fit.ai
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-6 px-5">
+        <div>
+          <p className="font-heading text-sm text-muted-foreground">
+            {workoutStreak > 0
+              ? `${workoutStreak} dias seguidos 🔥`
+              : "Comece sua sequência hoje!"}
           </p>
+          <h1 className="font-heading text-2xl font-semibold text-foreground">
+            Olá, {firstName}!
+          </h1>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <div>
+          <h2 className="mb-3 font-heading text-lg font-semibold text-foreground">
+            Treino de Hoje
+          </h2>
+          {todayWorkoutDay ? (
+            <Link
+              href={`/workout-plans/${todayWorkoutDay.workoutPlanId}/days/${todayWorkoutDay.id}`}
+            >
+              <WorkoutDayCard
+                name={todayWorkoutDay.name}
+                weekDay={todayWorkoutDay.weekDay}
+                estimatedDurationInSeconds={
+                  todayWorkoutDay.estimatedDurationInSeconds
+                }
+                exercisesCount={todayWorkoutDay.exercisesCount}
+                coverImageUrl={todayWorkoutDay.coverImageUrl}
+              />
+            </Link>
+          ) : (
+            <div className="flex h-[200px] items-center justify-center rounded-xl bg-muted">
+              <p className="font-heading text-muted-foreground">
+                Sem treino programado para hoje
+              </p>
+            </div>
+          )}
         </div>
-      </main>
+
+        <div>
+          <h2 className="mb-3 font-heading text-lg font-semibold text-foreground">
+            Consistência
+          </h2>
+          <ConsistencyTracker
+            consistencyByDay={consistencyByDay}
+            today={today}
+          />
+        </div>
+      </div>
+
+      <BottomNav activePage="home" />
     </div>
   );
 }
