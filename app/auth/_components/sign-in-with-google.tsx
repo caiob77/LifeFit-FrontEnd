@@ -1,8 +1,9 @@
 "use client";
 
-import { authClient } from "@/app/_lib/auth-client";
+import { authClient } from "../../_lib/auth-client";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+
 
 export const SignInWithGoogle = () => {
   const handleGoogleLogin = async () => {
