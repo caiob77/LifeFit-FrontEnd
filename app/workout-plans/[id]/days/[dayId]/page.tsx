@@ -4,12 +4,11 @@ import { requireAuth, requireOnboarding } from "@/app/_lib/guards";
 import dayjs from "dayjs";
 import Image from "next/image";
 import { Calendar, Timer, Dumbbell } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { BottomNav } from "@/app/_components/bottom-nav";
 import { BackButton } from "./_components/back-button";
 import { ExerciseCard } from "./_components/exercise-card";
-import { StartWorkoutButton } from "./_components/start-workout-button";
-import { CompleteWorkoutButton } from "./_components/complete-workout-button";
+import { WorkoutActions } from "./_components/workout-actions";
+import type { WorkoutSessionState } from "./_actions";
 
 const WEEKDAY_LABELS: Record<string, string> = {
   MONDAY: "SEGUNDA",
@@ -61,18 +60,22 @@ export default async function WorkoutDayPage({
   const durationInMinutes = Math.round(estimatedDurationInSeconds / 60);
 
   const inProgressSession = sessions.find(
-    (s) => s.startedAt && !s.completedAt,
+    (s) => s.startAt && !s.completedAt,
   );
   const completedSession = sessions.find((s) => s.completedAt);
-  const hasInProgressSession = !!inProgressSession;
-  const hasCompletedSession = !!completedSession;
+
+  const sessionState: WorkoutSessionState = completedSession
+    ? { status: "completed" }
+    : inProgressSession
+      ? { status: "in_progress", sessionId: inProgressSession.id }
+      : { status: "idle" };
 
   return (
     <div className="flex min-h-svh flex-col bg-background pb-24">
       <div className="flex items-center justify-between px-5 py-4">
         <BackButton />
         <h1 className="font-heading text-lg font-semibold text-foreground">
-          {hasInProgressSession || hasCompletedSession
+          {sessionState.status !== "idle"
             ? "Treino de Hoje"
             : WEEKDAY_TITLE_LABELS[weekDay]}
         </h1>
@@ -121,21 +124,11 @@ export default async function WorkoutDayPage({
               </div>
             </div>
 
-            {!hasInProgressSession && !hasCompletedSession && (
-              <StartWorkoutButton
-                workoutPlanId={workoutPlanId}
-                workoutDayId={dayId}
-              />
-            )}
-            {hasCompletedSession && (
-              <Button
-                variant="ghost"
-                disabled
-                className="rounded-full px-4 py-2 font-heading text-sm font-semibold text-background/70 hover:bg-transparent hover:text-background/70"
-              >
-                Concluído!
-              </Button>
-            )}
+            <WorkoutActions
+              workoutPlanId={workoutPlanId}
+              workoutDayId={dayId}
+              initialState={sessionState}
+            />
           </div>
         </div>
       </div>
@@ -147,16 +140,6 @@ export default async function WorkoutDayPage({
             <ExerciseCard key={exercise.id} exercise={exercise} />
           ))}
       </div>
-
-      {hasInProgressSession && inProgressSession && (
-        <div className="px-5 pt-5">
-          <CompleteWorkoutButton
-            workoutPlanId={workoutPlanId}
-            workoutDayId={dayId}
-            sessionId={inProgressSession.id}
-          />
-        </div>
-      )}
 
       <BottomNav activePage="calendar" />
     </div>
