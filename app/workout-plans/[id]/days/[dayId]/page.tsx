@@ -70,6 +70,9 @@ export default async function WorkoutDayPage({
       ? { status: "in_progress", sessionId: inProgressSession.id }
       : { status: "idle" };
 
+  const currentWeekDay = dayjs().format("dddd").toUpperCase();
+  const isToday = weekDay === currentWeekDay;
+
   return (
     <div className="flex min-h-svh flex-col bg-background pb-24">
       <div className="flex items-center justify-between px-5 py-4">
@@ -128,6 +131,7 @@ export default async function WorkoutDayPage({
               workoutPlanId={workoutPlanId}
               workoutDayId={dayId}
               initialState={sessionState}
+              isToday={isToday}
             />
           </div>
         </div>

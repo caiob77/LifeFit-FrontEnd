@@ -4,6 +4,7 @@ import {
   startWorkoutSession,
   updateWorkoutSession,
 } from "@/app/_lib/api/fetch-generated";
+import { revalidatePath } from "next/cache";
 
 export type WorkoutSessionState =
   | { status: "idle" }
@@ -37,6 +38,9 @@ export async function workoutSessionAction(
       prev.sessionId,
       { completedAt: new Date().toISOString() },
     );
+
+    revalidatePath("/stats");
+    revalidatePath("/");
 
     return { status: "completed" };
   }
