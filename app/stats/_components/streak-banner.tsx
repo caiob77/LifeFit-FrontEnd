@@ -1,11 +1,16 @@
+"use client";
+
 import Image from "next/image";
 import { Flame } from "lucide-react";
+import { useWorkoutStreak } from "@/app/utils/stats/queries";
 
 interface StreakBannerProps {
-  workoutStreak: number;
+  initialStreak: number;
 }
 
-export function StreakBanner({ workoutStreak }: StreakBannerProps) {
+export function StreakBanner({ initialStreak }: StreakBannerProps) {
+  const { data: workoutStreak = initialStreak } = useWorkoutStreak(initialStreak);
+
   const isZero = workoutStreak === 0;
 
   return (

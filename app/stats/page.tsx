@@ -52,7 +52,7 @@ export default async function StatsPage() {
       </div>
 
       <div className="px-5">
-        <StreakBanner workoutStreak={workoutStreak} />
+        <StreakBanner initialStreak={workoutStreak} />
       </div>
 
       <div className="flex flex-col gap-3 p-5">

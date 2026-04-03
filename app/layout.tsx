@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Chat } from "@/app/_components/chat";
+import { QueryProvider } from "@/app/_lib/query-client";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -30,10 +31,12 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-          <NuqsAdapter>
-            {children}
-            <Chat />
-          </NuqsAdapter>
+          <QueryProvider>
+            <NuqsAdapter>
+              {children}
+              <Chat />
+            </NuqsAdapter>
+          </QueryProvider>
         </body>
     </html>
   );
