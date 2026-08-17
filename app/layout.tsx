@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Chat } from "@/app/_components/chat";
@@ -32,10 +33,12 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
           <QueryProvider>
-            <NuqsAdapter>
-              {children}
-              <Chat />
-            </NuqsAdapter>
+            <Suspense fallback={null}>
+              <NuqsAdapter>
+                {children}
+                <Chat />
+              </NuqsAdapter>
+            </Suspense>
           </QueryProvider>
         </body>
     </html>

@@ -6,19 +6,19 @@ Interface da aplicação **Fit.ai**: plataforma de fitness com planos de treino 
 
 ## Stack
 
-| Camada | Tecnologia |
-|--------|-----------|
-| Framework | Next.js 16 (App Router) |
-| UI | React 19 |
-| Estilo | Tailwind CSS 4 |
-| Componentes | shadcn/ui (Radix UI) |
-| Autenticação | better-auth (`better-auth/react`) |
-| Formulários | react-hook-form + Zod |
+| Camada       | Tecnologia                                |
+| ------------ | ----------------------------------------- |
+| Framework    | Next.js 16 (App Router)                   |
+| UI           | React 19                                  |
+| Estilo       | Tailwind CSS 4                            |
+| Componentes  | shadcn/ui (Radix UI)                      |
+| Autenticação | better-auth (`better-auth/react`)         |
+| Formulários  | react-hook-form + Zod                     |
 | Cliente HTTP | Orval (gerado a partir do OpenAPI da API) |
-| Chat IA | Vercel AI SDK (`@ai-sdk/react`) |
-| URL state | nuqs |
-| Markdown | streamdown |
-| Ícones | lucide-react |
+| Chat IA      | Vercel AI SDK (`@ai-sdk/react`)           |
+| URL state    | nuqs                                      |
+| Markdown     | streamdown                                |
+| Ícones       | lucide-react                              |
 
 ---
 
@@ -39,6 +39,7 @@ Interface da aplicação **Fit.ai**: plataforma de fitness com planos de treino 
 - Node.js >= 20
 - pnpm >= 10
 - API do LifeFit rodando (ver [repositório do backend](../../LifeFit))
+- Docker (opcional, apenas para rodar via container — ver [Docker](#docker))
 
 ---
 
@@ -51,9 +52,9 @@ NEXT_PUBLIC_API_URL=http://localhost:8081
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
 ```
 
-| Variável | Descrição |
-|----------|-----------|
-| `NEXT_PUBLIC_API_URL` | URL base da API backend |
+| Variável               | Descrição                                            |
+| ---------------------- | ---------------------------------------------------- |
+| `NEXT_PUBLIC_API_URL`  | URL base da API backend                              |
 | `NEXT_PUBLIC_BASE_URL` | URL do próprio app Next.js (usado no callback OAuth) |
 
 ---
@@ -79,6 +80,25 @@ pnpm start
 ```bash
 pnpm lint
 ```
+
+---
+
+## Docker
+
+A imagem é gerada com um `Dockerfile` multi-stage (`deps` → `builder` → `runner`), usando o build `output: "standalone"` do Next.js — a imagem final não contém `node_modules`, código-fonte ou gerenciador de pacotes, só o server standalone e os assets estáticos.
+
+Como `NEXT_PUBLIC_API_URL` e `NEXT_PUBLIC_BASE_URL` são embutidas no bundle do client **em tempo de build**, elas precisam ser passadas como `--build-arg`:
+
+```bash
+docker build \
+  --build-arg NEXT_PUBLIC_API_URL=http://localhost:8081 \
+  --build-arg NEXT_PUBLIC_BASE_URL=http://localhost:3000 \
+  -t lifefit-frontend .
+
+docker run -p 3000:3000 lifefit-frontend
+```
+
+Para apontar para uma API diferente é necessário rebuildar a imagem com novos `--build-arg` — não é possível trocar via `docker run -e` depois do build.
 
 ---
 
@@ -127,15 +147,15 @@ lib/
 
 ## Rotas da aplicação
 
-| Rota | Descrição |
-|------|-----------|
-| `/` | Home — treino do dia e resumo |
-| `/auth` | Login com Google |
-| `/onboarding` | Configuração inicial via chat IA |
-| `/stats` | Estatísticas de treino |
-| `/profile` | Perfil do usuário |
-| `/workout-plans/[id]` | Detalhe de um plano |
-| `/workout-plans/[id]/days/[dayId]` | Dia de treino com exercícios |
+| Rota                               | Descrição                        |
+| ---------------------------------- | -------------------------------- |
+| `/`                                | Home — treino do dia e resumo    |
+| `/auth`                            | Login com Google                 |
+| `/onboarding`                      | Configuração inicial via chat IA |
+| `/stats`                           | Estatísticas de treino           |
+| `/profile`                         | Perfil do usuário                |
+| `/workout-plans/[id]`              | Detalhe de um plano              |
+| `/workout-plans/[id]/days/[dayId]` | Dia de treino com exercícios     |
 
 ---
 
